@@ -58,9 +58,25 @@ defmodule GenQueue.Adapters.VerkTest do
       stop_process(pid)
     end
 
+    test "enqueues and runs job from module and single arg" do
+      {:ok, pid} = Enqueuer.start_link()
+      {:ok, job} = Enqueuer.push({Job, "foo"})
+      assert_receive({:performed, "foo"})
+      assert {Job, ["foo"], %{queue: "default", jid: _}} = job
+      stop_process(pid)
+    end
+
     test "enqueues a job with :at delay" do
       {:ok, pid} = Enqueuer.start_link()
       {:ok, job} = Enqueuer.push({Job, ["foo"]}, [at: DateTime.utc_now()])
+      assert_receive({:performed, "foo"})
+      assert {Job, ["foo"], %{queue: "default", jid: _, at: _}} = job
+      stop_process(pid)
+    end
+
+    test "enqueues a job with :in delay" do
+      {:ok, pid} = Enqueuer.start_link()
+      {:ok, job} = Enqueuer.push({Job, ["foo"]}, [in: 0])
       assert_receive({:performed, "foo"})
       assert {Job, ["foo"], %{queue: "default", jid: _, at: _}} = job
       stop_process(pid)
@@ -76,5 +92,12 @@ defmodule GenQueue.Adapters.VerkTest do
       assert {Job, [2], %{queue: "other", jid: _}} = job2
       stop_process(pid)
     end
+  end
+
+  test "enqueuer can be started as part of a supervision tree" do
+    {:ok, pid} = Supervisor.start_link([{Enqueuer, []}], strategy: :one_for_one)
+    {:ok, job} = Enqueuer.push(Job)
+    assert_receive(:performed)
+    stop_process(pid)
   end
 end

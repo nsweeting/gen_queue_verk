@@ -1,10 +1,6 @@
 defmodule GenQueue.Adapters.Verk do
   use GenQueue.Adapter
 
-  @default_opts %{
-    queue: "default"
-  }
-
   def start_link(_gen_queue, _opts) do
     Verk.Supervisor.start_link()
   end
@@ -17,13 +13,24 @@ defmodule GenQueue.Adapters.Verk do
     do_enqueue(module, [], build_opts_map(opts))
   end
 
-  def handle_push(_gen_queue, {module, args}, opts) do
+  def handle_push(_gen_queue, {module, args}, opts) when is_list(args) do
     do_enqueue(module, args, build_opts_map(opts))
   end
 
+  def handle_push(_gen_queue, {module, arg}, opts) do
+    do_enqueue(module, [arg], build_opts_map(opts))
+  end
+
   def build_opts_map(opts) do
-    opts = Enum.into(opts, %{})
-    Map.merge(@default_opts, opts)
+    opts
+    |> Enum.into(%{})
+    |> Map.put_new(:queue, "default")
+    |> case do
+      %{in: seconds} = opts when is_integer(seconds) ->
+        unix_time = :os.system_time(:seconds) + seconds
+        Map.put(opts, :at, DateTime.from_unix!(unix_time))
+      opts -> opts
+    end
   end
 
   defp do_enqueue(module, args, %{at: _} = opts) do

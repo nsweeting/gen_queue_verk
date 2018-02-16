@@ -15,8 +15,12 @@ defmodule GenQueue.Adapters.VerkMock do
     do_return(gen_queue, module, [], VerkAdapter.build_opts_map(opts))
   end
 
-  def handle_push(gen_queue, {module, args}, opts) do
+  def handle_push(gen_queue, {module, args}, opts) when is_list(args) do
     do_return(gen_queue, module, args, VerkAdapter.build_opts_map(opts))
+  end
+
+  def handle_push(gen_queue, {module, arg}, opts) do
+    do_return(gen_queue, module, [arg], VerkAdapter.build_opts_map(opts))
   end
 
   defp do_return(gen_queue, module, args, opts) do
