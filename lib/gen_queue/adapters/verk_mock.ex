@@ -1,4 +1,8 @@
 defmodule GenQueue.Adapters.VerkMock do
+  @moduledoc """
+  An adapter for `GenQueue` to enable mock functionaility with `Verk`.
+  """
+
   use GenQueue.Adapter
 
   alias GenQueue.Adapters.Verk, as: VerkAdapter
@@ -21,6 +25,21 @@ defmodule GenQueue.Adapters.VerkMock do
 
   def handle_push(gen_queue, {module, arg}, opts) do
     do_return(gen_queue, module, [arg], VerkAdapter.build_opts_map(opts))
+  end
+
+  @doc false
+  def handle_pop(_gen_queue, _opts) do
+    {:error, :not_implemented}
+  end
+
+  @doc false
+  def handle_flush(_gen_queue, _opts) do
+    {:error, :not_implemented}
+  end
+
+  @doc false
+  def handle_length(_gen_queue, _opts) do
+    {:error, :not_implemented}
   end
 
   defp do_return(gen_queue, module, args, opts) do

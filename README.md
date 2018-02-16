@@ -1,4 +1,5 @@
 # GenQueue Verk
+[![Build Status](https://travis-ci.org/nsweeting/gen_queue_verk.svg?branch=master)](https://travis-ci.org/nsweeting/gen_queue_verk)
 [![GenQueue Exq Version](https://img.shields.io/hexpm/v/gen_queue_verk.svg)](https://hex.pm/packages/gen_queue_verk)
 
 This is an adapter for [GenQueue](https://github.com/nsweeting/gen_queue) to enable
@@ -92,11 +93,11 @@ We can now easily enqueue jobs to `Verk`. The adapter will handle a variety of a
 {:ok, job} = Enqueuer.push({MyJob, "arg1"}, [queue: "foo"])
 
 # Schedule MyJob to "default" queue with "arg1" in 10 seconds
-{:ok, job} = Enqueuer.push({MyJob, "arg1"}, [in: 10])
+{:ok, job} = Enqueuer.push({MyJob, "arg1"}, [delay: 10_000])
 
 # Schedule MyJob to "default" queue with "arg1" at a specific time
 date = DateTime.utc_now()
-{:ok, job} = Enqueuer.push({MyJob, "arg1"}, [at: date])
+{:ok, job} = Enqueuer.push({MyJob, "arg1"}, [delay: date])
 ```
 
 ## Testing

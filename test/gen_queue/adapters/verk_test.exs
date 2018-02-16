@@ -66,19 +66,19 @@ defmodule GenQueue.Adapters.VerkTest do
       stop_process(pid)
     end
 
-    test "enqueues a job with :at delay" do
+    test "enqueues a job with datetime delay" do
       {:ok, pid} = Enqueuer.start_link()
-      {:ok, job} = Enqueuer.push({Job, ["foo"]}, [at: DateTime.utc_now()])
+      {:ok, job} = Enqueuer.push({Job, ["foo"]}, [delay: DateTime.utc_now()])
       assert_receive({:performed, "foo"})
-      assert {Job, ["foo"], %{queue: "default", jid: _, at: _}} = job
+      assert {Job, ["foo"], %{queue: "default", jid: _, delay: _}} = job
       stop_process(pid)
     end
 
-    test "enqueues a job with :in delay" do
+    test "enqueues a job with millisecond delay" do
       {:ok, pid} = Enqueuer.start_link()
-      {:ok, job} = Enqueuer.push({Job, ["foo"]}, [in: 0])
+      {:ok, job} = Enqueuer.push({Job, ["foo"]}, [delay: 0])
       assert_receive({:performed, "foo"})
-      assert {Job, ["foo"], %{queue: "default", jid: _, at: _}} = job
+      assert {Job, ["foo"], %{queue: "default", jid: _, delay: _}} = job
       stop_process(pid)
     end
 
