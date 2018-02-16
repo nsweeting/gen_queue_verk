@@ -11,6 +11,23 @@ defmodule GenQueue.Adapters.VerkMock do
     :ignore
   end
 
+  @doc """
+  Push a job that will be returned to the current (or globally set) processes
+  mailbox. Please see `GenQueue.Test` for further details.
+
+  ## Parameters:
+    * `gen_queue` - Any GenQueue module
+    * `job` - Any valid job format
+    * `opts` - A keyword list of job options
+
+  ## Options
+    * `:queue` - The queue to push the job to. Defaults to "default".
+    * `:delay` - Either a `DateTime` or millseconds-based integer.
+
+  ## Returns:
+    * `{:ok, {module, args, opts}}` if the operation was successful
+    * `{:error, reason}` if there was an error
+  """
   def handle_push(gen_queue, module, opts) when is_atom(module) do
     do_return(gen_queue, module, [], VerkAdapter.build_opts_map(opts))
   end
