@@ -12,7 +12,7 @@ The package can be installed by adding `gen_queue_verk` to your list of dependen
 ```elixir
 def deps do
   [
-    {:gen_queue_verk, "~> 0.1.0"}
+    {:gen_queue_verk, "~> 0.1.1"}
   ]
 end
 ```
@@ -102,11 +102,11 @@ date = DateTime.utc_now()
 
 ## Testing
 
-Optionally, we can also have our tests use the `GenQueue.Adapters.VerkMock` adapter.
+Optionally, we can also have our tests use the `GenQueue.Adapters.MockJob` adapter.
 
 ```elixir
 config :my_app, Enqueuer, [
-  adapter: GenQueue.Adapters.VerkMock
+  adapter: GenQueue.Adapters.MockJob
 ]
 ```
 
@@ -126,7 +126,7 @@ defmodule MyJobTest do
 
   test "my enqueuer works" do
     {:ok, _} = Enqueuer.push(Job)
-    assert_receive({Job, [], %{jid: _}})
+    assert_receive(%GenQueue.Job{module: Job, args: []})
   end
 end
 ```

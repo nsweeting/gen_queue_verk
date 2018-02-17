@@ -9,12 +9,12 @@ defmodule GenQueue.Adapters.VerkTest do
 
     use GenQueue, otp_app: :gen_queue_verk
   end
-  
+
   defmodule Job do
     def perform do
       send_item(Enqueuer, :performed)
     end
-  
+
     def perform(arg1) do
       send_item(Enqueuer, {:performed, arg1})
     end
@@ -26,7 +26,7 @@ defmodule GenQueue.Adapters.VerkTest do
 
   setup_all do
     Application.put_env(:verk, :redis_url, "redis://127.0.0.1:6379")
-    Application.put_env(:verk, :queues, [default: 1, other: 1])
+    Application.put_env(:verk, :queues, default: 1, other: 1)
   end
 
   setup do
@@ -38,15 +38,15 @@ defmodule GenQueue.Adapters.VerkTest do
       {:ok, pid} = Enqueuer.start_link()
       {:ok, job} = Enqueuer.push(Job)
       assert_receive(:performed)
-      assert {Job, [], %{queue: "default"}} = job
+      assert %GenQueue.Job{module: Job, args: [], queue: "default"} = job
       stop_process(pid)
     end
-  
+
     test "enqueues and runs job from module tuple" do
       {:ok, pid} = Enqueuer.start_link()
       {:ok, job} = Enqueuer.push({Job})
       assert_receive(:performed)
-      assert {Job, [], %{queue: "default", jid: _}} = job
+      assert %GenQueue.Job{module: Job, args: [], queue: "default"} = job
       stop_process(pid)
     end
 
@@ -54,7 +54,7 @@ defmodule GenQueue.Adapters.VerkTest do
       {:ok, pid} = Enqueuer.start_link()
       {:ok, job} = Enqueuer.push({Job, ["foo", "bar"]})
       assert_receive({:performed, "foo", "bar"})
-      assert {Job, ["foo", "bar"], %{queue: "default", jid: _}} = job
+      assert %GenQueue.Job{module: Job, args: ["foo", "bar"], queue: "default"} = job
       stop_process(pid)
     end
 
@@ -62,34 +62,35 @@ defmodule GenQueue.Adapters.VerkTest do
       {:ok, pid} = Enqueuer.start_link()
       {:ok, job} = Enqueuer.push({Job, "foo"})
       assert_receive({:performed, "foo"})
-      assert {Job, ["foo"], %{queue: "default", jid: _}} = job
+      assert %GenQueue.Job{module: Job, args: ["foo"], queue: "default"} = job
       stop_process(pid)
     end
 
     test "enqueues a job with datetime delay" do
       {:ok, pid} = Enqueuer.start_link()
-      {:ok, job} = Enqueuer.push({Job, ["foo"]}, [delay: DateTime.utc_now()])
+      {:ok, job} = Enqueuer.push({Job, ["foo"]}, delay: DateTime.utc_now())
       assert_receive({:performed, "foo"})
-      assert {Job, ["foo"], %{queue: "default", jid: _, delay: _}} = job
+      assert %GenQueue.Job{module: Job, args: ["foo"], queue: "default", delay: %DateTime{}} = job
       stop_process(pid)
     end
 
     test "enqueues a job with millisecond delay" do
       {:ok, pid} = Enqueuer.start_link()
-      {:ok, job} = Enqueuer.push({Job, ["foo"]}, [delay: 0])
+      {:ok, job} = Enqueuer.push({Job, ["foo"]}, delay: 0)
       assert_receive({:performed, "foo"})
-      assert {Job, ["foo"], %{queue: "default", jid: _, delay: _}} = job
+      assert %GenQueue.Job{module: Job, args: ["foo"], queue: "default", delay: delay} = job
+      assert is_integer(delay)
       stop_process(pid)
     end
 
     test "enqueues a job to a specific queue" do
       {:ok, pid} = Enqueuer.start_link()
-      {:ok, job1} = Enqueuer.push({Job, [1]}, [queue: "default"])
-      {:ok, job2} = Enqueuer.push({Job, [2]}, [queue: "other"])
+      {:ok, job1} = Enqueuer.push({Job, [1]}, queue: "default")
+      {:ok, job2} = Enqueuer.push({Job, [2]}, queue: "other")
       assert_receive({:performed, 1})
       assert_receive({:performed, 2})
-      assert {Job, [1], %{queue: "default", jid: _}} = job1
-      assert {Job, [2], %{queue: "other", jid: _}} = job2
+      assert %GenQueue.Job{module: Job, args: [1], queue: "default"} = job1
+      assert %GenQueue.Job{module: Job, args: [2], queue: "other"} = job2
       stop_process(pid)
     end
   end
